@@ -352,33 +352,102 @@ function group(array, keySelector, valueSelector) {
  *  For more examples see unit tests.
  */
 
+class CssSelector {
+  constructor(value, index) {
+    this.parts = [value];
+    this.index = index;
+  }
+
+  element(value) {
+    this.checkDuplicate(1);
+    this.parts.push(value);
+    return this;
+  }
+
+  id(value) {
+    this.checkDuplicate(2);
+    this.parts.push(`#${value}`);
+    return this;
+  }
+
+  class(value) {
+    this.checkOrder(3);
+    this.parts.push(`.${value}`);
+    return this;
+  }
+
+  attr(value) {
+    this.checkOrder(4);
+    this.parts.push(`[${value}]`);
+    return this;
+  }
+
+  pseudoClass(value) {
+    this.checkOrder(5);
+    this.parts.push(`:${value}`);
+    return this;
+  }
+
+  pseudoElement(value) {
+    this.checkDuplicate(6);
+    this.parts.push(`::${value}`);
+    return this;
+  }
+
+  stringify() {
+    return this.parts.join('');
+  }
+
+  checkDuplicate(index) {
+    if (this.index === index) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    this.checkOrder(index);
+  }
+
+  checkOrder(index) {
+    if (this.index > index) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+  }
+}
+
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    return new CssSelector(value, 1);
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return new CssSelector(`#${value}`, 2);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return new CssSelector(`.${value}`, 3);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return new CssSelector(`[${value}]`, 4);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return new CssSelector(`:${value}`, 5);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return new CssSelector(`::${value}`, 6);
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const resultSelector1 = selector1.stringify();
+    const resultSelector2 = selector2.stringify();
+    return new CssSelector(
+      `${resultSelector1} ${combinator} ${resultSelector2}`,
+      7
+    );
   },
 };
 
